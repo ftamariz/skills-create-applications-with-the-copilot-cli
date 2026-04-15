@@ -6,6 +6,9 @@
  * - subtraction
  * - multiplication
  * - division
+ * - modulo
+ * - exponentiation
+ * - square root
  */
 
 function validateNumbers(values) {
@@ -54,17 +57,53 @@ function divide(firstValue, secondValue) {
   return dividend / divisor;
 }
 
-function runCli(argumentsList) {
-  const [operation, ...operands] = argumentsList;
+function modulo(firstValue, secondValue) {
+  const [dividend, divisor] = validateNumbers([firstValue, secondValue]);
 
-  if (!operation || operands.length < 2) {
+  if (divisor === 0) {
+    throw new Error("Modulo by zero is not allowed.");
+  }
+
+  return dividend % divisor;
+}
+
+function power(baseValue, exponentValue) {
+  const [base, exponent] = validateNumbers([baseValue, exponentValue]);
+
+  return base ** exponent;
+}
+
+function squareRoot(value) {
+  const [number] = validateNumbers([value]);
+
+  if (number < 0) {
+    throw new Error("Square root of a negative number is not allowed.");
+  }
+
+  return Math.sqrt(number);
+}
+
+function runCli(argumentsList) {
+  const [rawOperation, ...rawOperands] = argumentsList;
+  let operation = rawOperation;
+  let operands = rawOperands;
+
+  if (rawOperation && rawOperation.startsWith("√") && rawOperation.length > 1) {
+    operation = "√";
+    operands = [rawOperation.slice(1)];
+  }
+
+  if (!operation) {
     throw new Error(
-      "Usage: node src/calculator.js <add|subtract|multiply|divide> <number> <number> [additional numbers for add/multiply]"
+      "Usage: node src/calculator.js <add|subtract|multiply|divide|modulo|power|sqrt> <number> <number> [additional numbers for add/multiply]"
     );
   }
 
   switch (operation) {
     case "add":
+      if (operands.length < 2) {
+        throw new Error("Addition requires at least two numbers.");
+      }
       return add(...operands);
     case "subtract":
       if (operands.length !== 2) {
@@ -72,15 +111,36 @@ function runCli(argumentsList) {
       }
       return subtract(operands[0], operands[1]);
     case "multiply":
+      if (operands.length < 2) {
+        throw new Error("Multiplication requires at least two numbers.");
+      }
       return multiply(...operands);
     case "divide":
       if (operands.length !== 2) {
         throw new Error("Division requires exactly two numbers.");
       }
       return divide(operands[0], operands[1]);
+    case "modulo":
+    case "%":
+      if (operands.length !== 2) {
+        throw new Error("Modulo requires exactly two numbers.");
+      }
+      return modulo(operands[0], operands[1]);
+    case "power":
+    case "^":
+      if (operands.length !== 2) {
+        throw new Error("Power requires exactly two numbers.");
+      }
+      return power(operands[0], operands[1]);
+    case "sqrt":
+    case "√":
+      if (operands.length !== 1) {
+        throw new Error("Square root requires exactly one number.");
+      }
+      return squareRoot(operands[0]);
     default:
       throw new Error(
-        `Unsupported operation: ${operation}. Use add, subtract, multiply, or divide.`
+        `Unsupported operation: ${operation}. Use add, subtract, multiply, divide, modulo, power, or sqrt.`
       );
   }
 }
@@ -100,5 +160,8 @@ module.exports = {
   subtract,
   multiply,
   divide,
+  modulo,
+  power,
+  squareRoot,
   runCli,
 };
